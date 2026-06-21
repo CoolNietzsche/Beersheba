@@ -1,0 +1,6 @@
+{
+  "name": "Bunna Bridge",
+  "description": "An Ethiopian D2C specialty coffee export compliance marketplace and dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

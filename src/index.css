@@ -1,0 +1,335 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ── Brand token definitions ──────────────────────────────────── */
+:root {
+  --color-forest:      #1B4D35;
+  --color-forest-dark: #163D2A;
+  --color-forest-light:#E8F2EC;
+  --color-coffee:      #7B4B2A;
+  --color-coffee-light:#F5EDE4;
+  --color-sage:        #2D7A52;
+  --color-linen:       #F7F5F0;
+  --color-stone:       #F0EDE6;
+  --color-ink:         #1C1C1A;
+  --color-slate:       #4A4A45;
+  --color-border:      rgba(28,28,26,0.08);
+  --color-border-strong: rgba(28,28,26,0.14);
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 64px;
+  --topbar-height: 56px;
+  color-scheme: light;
+}
+
+/* ── Tailwind v4 theme tokens ─────────────────────────────────── */
+@theme {
+  --color-forest:      #1B4D35;
+  --color-forest-dark: #163D2A;
+  --color-forest-light:#E8F2EC;
+  --color-coffee:      #7B4B2A;
+  --color-coffee-light:#F5EDE4;
+  --color-sage:        #2D7A52;
+  --color-linen:       #F7F5F0;
+  --color-stone:       #F0EDE6;
+  --color-ink:         #1C1C1A;
+  --color-slate:       #4A4A45;
+  --color-border:      rgba(28,28,26,0.08);
+  --color-border-strong: rgba(28,28,26,0.14);
+  --color-mint:        #A8D5BC;
+
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-mono:    "DM Mono", monospace;
+  --font-sans:    "Instrument Sans", sans-serif;
+
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1rem;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+
+  --spacing-18: 4.5rem;
+}
+
+/* ── Nuclear Overrides ────────────────────────────────────────── */
+@layer base {
+  /* 
+    Trade-offs: Using [style*="..."] selection allows transparent backward-compatibility
+    for old inline style declarations without breaking layout structure. However, it can
+    override legitimate nested elements unless targeted specifically or solved via page/component rewrites.
+  */
+  
+  /* #1A0F07 -> #F7F5F0 (Linen background fallback) */
+  *[style*="#1A0F07"], *[style*="#1a0f07"], *[style*="rgb(26, 15, 7)"], *[style*="rgb(26,15,7)"] {
+    background-color: #F7F5F0 !important;
+  }
+
+  /* #2C1810 -> #FFFFFF (White content cards) */
+  *[style*="#2C1810"], *[style*="#2c1810"], *[style*="rgb(44, 24, 16)"], *[style*="rgb(44,24,16)"] {
+    background-color: #FFFFFF !important;
+  }
+
+  /* #1E1208 -> #1B4D35 (Sidebar wrapper mapping - scoped strictly to sidebar parent if possible, or general) */
+  /* Sidebar carries .sidebar class or resides inside nav sidebar */
+  aside[style*="#1E1208"], aside[style*="#1e1208"],
+  .sidebar[style*="#1E1208"], .sidebar[style*="#1e1208"],
+  *[style*="#1E1208"], *[style*="#1e1208"] {
+    background-color: #1B4D35 !important;
+  }
+
+  /* #4A2515 -> rgba(28,28,26,0.08) */
+  *[style*="#4A2515"], *[style*="#4a2515"] {
+    background-color: rgba(28, 28, 26, 0.08) !important;
+    border-color: rgba(28, 28, 26, 0.08) !important;
+  }
+
+  /* #F5EDD8 -> #1C1C1A (Body text ink) */
+  *[style*="#F5EDD8"], *[style*="#f5edd8"], *[style*="rgb(245, 237, 216)"], *[style*="rgb(245,237,216)"] {
+    color: #1C1C1A !important;
+    border-color: rgba(28, 28, 26, 0.08) !important;
+  }
+
+  /* Opacity helpers for rgba(245, 237, 216, X) -> rgba(28, 28, 26, X) */
+  *[style*="rgba(245,237,216,0.03)"], *[style*="rgba(245, 237, 216, 0.03)"] { background-color: rgba(28, 28, 26, 0.03) !important; }
+  *[style*="rgba(245,237,216,0.04)"], *[style*="rgba(245, 237, 216, 0.04)"] { background-color: rgba(28, 28, 26, 0.04) !important; }
+  *[style*="rgba(245,237,216,0.05)"], *[style*="rgba(245, 237, 216, 0.05)"] { background-color: rgba(28, 28, 26, 0.05) !important; }
+  *[style*="rgba(245,237,216,0.06)"], *[style*="rgba(245, 237, 216, 0.06)"] { background-color: rgba(28, 28, 26, 0.06) !important; }
+  *[style*="rgba(245,237,216,0.07)"], *[style*="rgba(245, 237, 216, 0.07)"] { background-color: rgba(28, 28, 26, 0.07) !important; border-color: rgba(28, 28, 26, 0.07) !important; }
+  *[style*="rgba(245,237,216,0.08)"], *[style*="rgba(245, 237, 216, 0.08)"] { background-color: rgba(28, 28, 26, 0.08) !important; border-color: rgba(28, 28, 26, 0.08) !important; }
+  *[style*="rgba(245,237,216,0.09)"], *[style*="rgba(245, 237, 216, 0.09)"] { background-color: rgba(28, 28, 26, 0.09) !important; border-color: rgba(28, 28, 26, 0.09) !important; }
+  *[style*="rgba(245,237,216,0.1)"],  *[style*="rgba(245, 237, 216, 0.1)"]  { background-color: rgba(28, 28, 26, 0.1) !important; }
+  *[style*="rgba(245,237,216,0.12)"], *[style*="rgba(245, 237, 216, 0.12)"] { background-color: rgba(28, 28, 26, 0.12) !important; }
+  *[style*="rgba(245,237,216,0.15)"], *[style*="rgba(245, 237, 216, 0.15)"] { background-color: rgba(28, 28, 26, 0.15) !important; border-color: rgba(28, 28, 26, 0.15) !important; }
+  *[style*="rgba(245,237,216,0.2)"],  *[style*="rgba(245, 237, 216, 0.2)"]  { color: rgba(28, 28, 26, 0.2) !important; }
+  *[style*="rgba(245,237,216,0.25)"], *[style*="rgba(245, 237, 216, 0.25)"] { color: rgba(28, 28, 26, 0.25) !important; border-color: rgba(28, 28, 26, 0.25) !important; }
+  *[style*="rgba(245,237,216,0.3)"],  *[style*="rgba(245, 237, 216, 0.3)"]  { color: rgba(28, 28, 26, 0.3) !important; }
+  *[style*="rgba(245,237,216,0.35)"], *[style*="rgba(245, 237, 216, 0.35)"] { color: rgba(28, 28, 26, 0.35) !important; }
+  *[style*="rgba(245,237,216,0.4)"],  *[style*="rgba(245, 237, 216, 0.4)"]  { color: rgba(28, 28, 26, 0.4) !important; }
+  *[style*="rgba(245,237,216,0.5)"],  *[style*="rgba(245, 237, 216, 0.5)"]  { color: rgba(28, 28, 26, 0.5) !important; }
+  *[style*="rgba(245,237,216,0.6)"],  *[style*="rgba(245, 237, 216, 0.6)"]  { color: rgba(28, 28, 26, 0.6) !important; }
+}
+
+/* ── Reset ────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #F7F5F0;
+  color: #1C1C1A;
+  font-family: "Instrument Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(28,28,26,0.15); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(28,28,26,0.25); }
+
+/* ── Focus ────────────────────────────────────────────────────── */
+*:focus-visible { outline: 1px solid #1B4D35; outline-offset: 2px; }
+
+/* ── Component classes ────────────────────────────────────────── */
+@layer components {
+
+  /* Card — the main surface unit */
+  .card {
+    background: #FFFFFF;
+    border: 1px solid rgba(28,28,26,0.08);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(28,28,26,0.06);
+  }
+
+  .card-title {
+    font-family: "DM Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(28,28,26,0.4);
+    margin: 0 0 16px;
+  }
+
+  /* Subtle inner card */
+  .card-inner {
+    background: #F7F5F0;
+    border: 1px solid rgba(28,28,26,0.07);
+    border-radius: 4px;
+  }
+
+  /* Stat value */
+  .stat-value {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 2.5rem;
+    font-weight: 300;
+    line-height: 1;
+    color: #1C1C1A;
+  }
+
+  /* Pill / badge */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-family: "DM Mono", monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+
+  /* Primary action button */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    background: #1B4D35;
+    border: 1px solid #1B4D35;
+    color: #FFFFFF;
+    font-family: "DM Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary:hover {
+    background: #163D2A;
+    border-color: #163D2A;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    background: transparent;
+    border: 1px solid rgba(28,28,26,0.12);
+    color: rgba(28,28,26,0.6);
+    font-family: "DM Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-ghost:hover {
+    border-color: rgba(28,28,26,0.25);
+    color: #1C1C1A;
+  }
+
+  /* Table row */
+  .table-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .table-row:hover {
+    background: #F7F5F0;
+    border-color: rgba(28,28,26,0.08);
+  }
+
+  /* Section divider */
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(28,28,26,0.08);
+    margin: 16px 0;
+  }
+
+  /* Input */
+  .input {
+    width: 100%;
+    background: #FFFFFF;
+    border: 1px solid rgba(28,28,26,0.15);
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #1C1C1A;
+    font-family: "Instrument Sans", sans-serif;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input:focus {
+    border-color: #1B4D35;
+    box-shadow: 0 0 0 3px rgba(27,77,53,0.08);
+  }
+  .input::placeholder {
+    color: rgba(28,28,26,0.3);
+  }
+
+  /* Label */
+  .label {
+    display: block;
+    font-family: "DM Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(28,28,26,0.45);
+    margin-bottom: 6px;
+  }
+
+  /* Page header */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: #1C1C1A;
+    margin: 0 0 4px;
+    line-height: 1.2;
+  }
+
+  .page-subtitle {
+    font-family: "DM Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(28,28,26,0.3);
+    margin: 0;
+  }
+}
+
+/* ── Utility extensions ───────────────────────────────────────── */
+@layer utilities {
+  .text-2xs {
+    font-size: 0.625rem;
+    line-height: 1rem;
+  }
+
+  .border-border {
+    border-color: rgba(28,28,26,0.08);
+  }
+
+  .border-border-strong {
+    border-color: rgba(28,28,26,0.14);
+  }
+
+  .bg-stone\/50 {
+    background-color: rgba(240,237,230,0.5);
+  }
+
+  .font-display {
+    font-family: "Cormorant Garamond", Georgia, serif;
+  }
+
+  .font-mono {
+    font-family: "DM Mono", monospace;
+  }
+
+  .tracking-widest {
+    letter-spacing: 0.2em;
+  }
+}
