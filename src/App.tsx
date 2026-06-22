@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useBoundarySync } from './hooks/useBoundarySync';
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -29,9 +30,10 @@ export default function App() {
   useBoundarySync();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
             <Route path="/login"       element={<Login />} />
             <Route path="/register"    element={<Register />} />
             <Route path="/dashboard"   element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -55,6 +57,7 @@ export default function App() {
           </Routes>
         </BrowserRouter>
       </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

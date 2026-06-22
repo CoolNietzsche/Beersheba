@@ -46,7 +46,7 @@ export interface CuppingScoreInput {
 
 export const getCuppingScores = async (lotId: string): Promise<CuppingScore[]> => {
   const { data } = await api.get(`/v1/lots/${lotId}/cupping-scores/`);
-  return data;
+  return (data?.results ?? data ?? []) as CuppingScore[];
 };
 
 export const submitCuppingScore = async (

@@ -3,22 +3,62 @@
 
 /* ── Brand token definitions ──────────────────────────────────── */
 :root {
-  --color-forest:      #1B4D35;
-  --color-forest-dark: #163D2A;
-  --color-forest-light:#E8F2EC;
-  --color-coffee:      #7B4B2A;
-  --color-coffee-light:#F5EDE4;
-  --color-sage:        #2D7A52;
-  --color-linen:       #F7F5F0;
-  --color-stone:       #F0EDE6;
-  --color-ink:         #1C1C1A;
-  --color-slate:       #4A4A45;
-  --color-border:      rgba(28,28,26,0.08);
+  --color-forest:       #1B4D35;
+  --color-forest-dark:  #163D2A;
+  --color-forest-light: #E8F2EC;
+  --color-coffee:       #7B4B2A;
+  --color-coffee-light: #F5EDE4;
+  --color-sage:         #2D7A52;
+  --color-mint:         #A8D5BC;
+  --color-linen:        #F7F5F0;
+  --color-stone:        #F0EDE6;
+  --color-white:        #FFFFFF;
+  --color-ink:          #1C1C1A;
+  --color-slate:        #4A4A45;
+  --color-red:          #C0392B;
+  --color-red-light:    #FDECEA;
+  --color-error-border: rgba(192,57,43,0.15);
+  --color-gold:         #B8860B;
+  --color-gold-light:   #FEF9E7;
+  --color-forest-hover: #163D2A;
+  --color-border:       rgba(28,28,26,0.08);
   --color-border-strong: rgba(28,28,26,0.14);
+  --color-border-hover:  rgba(28,28,26,0.22);
+  --color-text-muted:    rgba(28,28,26,0.45);
+  --color-text-faint:    rgba(28,28,26,0.3);
+  --color-text-ghost:    rgba(28,28,26,0.18);
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 64px;
   --topbar-height: 56px;
   color-scheme: light;
+}
+
+.dark {
+  --color-forest:       #2A6245;
+  --color-forest-dark:  #1B4D35;
+  --color-forest-light: #182C22;
+  --color-coffee:       #CD8D60;
+  --color-coffee-light: #2A1F18;
+  --color-sage:         #3EA673;
+  --color-mint:         #1E3A2B;
+  --color-linen:        #0E0E0D;
+  --color-stone:        #181816;
+  --color-white:        #151514;
+  --color-ink:          #FBF9F4;
+  --color-slate:        #A5A5A0;
+  --color-red:          #E74C3C;
+  --color-red-light:    #301A1A;
+  --color-error-border: rgba(231,76,60,0.3);
+  --color-gold:         #EAB543;
+  --color-gold-light:   #2C2518;
+  --color-forest-hover: #327552;
+  --color-border:       rgba(251,249,244,0.13);
+  --color-border-strong: rgba(251,249,244,0.23);
+  --color-border-hover:  rgba(251,249,244,0.33);
+  --color-text-muted:    rgba(251,249,244,0.6);
+  --color-text-faint:    rgba(251,249,244,0.4);
+  --color-text-ghost:    rgba(251,249,244,0.25);
+  color-scheme: dark;
 }
 
 /* ── Tailwind v4 theme tokens ─────────────────────────────────── */
@@ -114,8 +154,8 @@
 
 body {
   margin: 0;
-  background: #F7F5F0;
-  color: #1C1C1A;
+  background: var(--color-linen);
+  color: var(--color-ink);
   font-family: "Instrument Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
 }

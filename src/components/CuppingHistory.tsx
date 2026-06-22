@@ -33,18 +33,20 @@ export default function CuppingHistory({ lotId }: { lotId: string }) {
     </div>
   );
 
+  const cuppingList = Array.isArray(scores) ? scores : (scores as any)?.results ?? [];
+
   return (
     <div>
       <p style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(28,28,26,0.4)", margin: "0 0 14px" }}>
-        Cupping History ({scores?.length ?? 0} record{scores?.length !== 1 ? "s" : ""})
+        Cupping History ({cuppingList.length} record{cuppingList.length !== 1 ? "s" : ""})
       </p>
 
-      {!scores || scores.length === 0 ? (
+      {cuppingList.length === 0 ? (
         <p style={{ fontFamily: "DM Mono, monospace", fontSize: "0.7rem", color: "rgba(28,28,26,0.3)", padding: "8px 0" }}>
           No cupping scores recorded yet.
         </p>
       ) : (
-        scores.map(score => (
+        cuppingList.map(score => (
           <div key={score.id} style={{
             background: score.status === "confirmed" ? "#E8F2EC" : "#F7F5F0",
             border: `1px solid ${score.status === "confirmed" ? "rgba(27,77,53,0.2)" : "rgba(28,28,26,0.08)"}`,

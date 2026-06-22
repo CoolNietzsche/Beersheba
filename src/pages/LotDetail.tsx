@@ -137,7 +137,8 @@ export default function LotDetail() {
     </PageWrapper>
   );
 
-  const bestScore = cuppingScores?.find(s => s.status === "confirmed") ?? cuppingScores?.[0] ?? null;
+  const cuppingList = Array.isArray(cuppingScores) ? cuppingScores : (cuppingScores as any)?.results ?? [];
+  const bestScore = cuppingList.find((s: any) => s.status === "confirmed") ?? cuppingList[0] ?? null;
   const radarScores: Record<string, number> = bestScore ? {
     fragrance_aroma: parseFloat(String(bestScore.fragrance_aroma)) || 8,
     flavor:          parseFloat(String(bestScore.flavor))          || 8,

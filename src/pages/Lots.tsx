@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { getLots } from "../api/lots";
+import { getLots, updateLot } from "../api/lots";
 import { useAuth } from "../context/AuthContext";
 import PageWrapper from "../components/PageWrapper";
 import StatusPill from "../components/StatusPill";
@@ -21,10 +21,66 @@ export default function Lots() {
   const [search, setSearch]   = useState("");
   const params = { ...filters, ...(search ? { search } : {}) };
 
+  const queryClient = useQueryClient();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [updating, setUpdating] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const showFeedback = (msg: string) => {
+    setFeedback(msg);
+    setTimeout(() => setFeedback(null), 4000);
+  };
+
   const { data, isLoading, isError } = useQuery({
     queryKey: ["lots", params],
     queryFn:  () => getLots(params),
   });
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && data) {
+      setSelectedIds(data.results.map(lot => lot.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(item => item !== id));
+    }
+  };
+
+  const handleBulkStatusUpdate = async (status: string) => {
+    if (selectedIds.length === 0) return;
+    setUpdating(true);
+    try {
+      await Promise.all(
+        selectedIds.map(id => updateLot(id, { status }))
+      );
+      queryClient.invalidateQueries({ queryKey: ["lots"] });
+      showFeedback(`Successfully updated ${selectedIds.length} lots to status: ${status.toUpperCase()}.`);
+      setSelectedIds([]);
+    } catch (err: any) {
+      showFeedback("Error performing bulk status update: " + (err.message || err));
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleBulkExport = () => {
+    if (selectedIds.length === 0 || !data) return;
+    const selectedLots = data.results.filter(lot => selectedIds.includes(lot.id));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(selectedLots, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `beersheba_lots_export_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showFeedback(`Exported ${selectedLots.length} records successfully.`);
+  };
 
   const setFilter = (key: string, val: string) =>
     setFilters(f => val
@@ -130,6 +186,115 @@ export default function Lots() {
         </div>
       )}
 
+      {/* Feedback banner */}
+      {feedback && (
+        <div style={{
+          background: "var(--color-forest-light)",
+          border: `1px solid var(--color-forest)`,
+          borderRadius: T.radius.md,
+          padding: "10px 16px",
+          marginBottom: "16px",
+          color: "var(--color-forest)",
+          fontFamily: T.font.sans,
+          fontSize: "0.8125rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          boxShadow: T.shadow.sm
+        }}>
+          <span>{feedback}</span>
+          <button 
+            onClick={() => setFeedback(null)} 
+            style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", fontSize: "1.25rem", fontWeight: "bold", padding: "0 4px" }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Bulk actions bar */}
+      {data && data.results.length > 0 && selectedIds.length > 0 && (
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          backgroundColor: "var(--color-stone)",
+          border: `1px solid var(--color-forest)`,
+          borderRadius: T.radius.md,
+          padding: "12px 16px",
+          marginBottom: "16px",
+          gap: "12px",
+          flexWrap: "wrap",
+          boxShadow: T.shadow.md
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontFamily: T.font.mono, fontSize: "0.75rem", color: "var(--color-forest)", fontWeight: 600 }}>
+              {selectedIds.length} item{selectedIds.length !== 1 ? "s" : ""} selected
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+            <span style={{ fontFamily: T.font.sans, fontSize: "0.75rem", color: T.color.textMuted }}>Bulk Actions:</span>
+            
+            <button
+              onClick={handleBulkExport}
+              style={{
+                ...CS.btnGhost,
+                padding: "6px 12px",
+                fontSize: "0.75rem",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px"
+              }}
+            >
+              Export Selected
+            </button>
+
+            {isExporter && (
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <select
+                  disabled={updating}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleBulkStatusUpdate(e.target.value);
+                      e.target.value = "";
+                    }
+                  }}
+                  style={{
+                    ...CS.input,
+                    width: "auto",
+                    padding: "4px 8px",
+                    fontSize: "0.75rem",
+                    height: "32px",
+                    background: "var(--color-white)",
+                    color: "var(--color-ink)",
+                    borderColor: "var(--color-border-strong)"
+                  }}
+                >
+                  <option value="">Update Status...</option>
+                  <option value="draft">Mark as Draft</option>
+                  <option value="listed">Mark as Listed</option>
+                  <option value="contracted">Mark as Contracted</option>
+                  <option value="exported">Mark as Exported</option>
+                </select>
+              </div>
+            )}
+
+            <button
+              onClick={() => setSelectedIds([])}
+              style={{
+                ...CS.btnGhost,
+                padding: "6px 12px",
+                fontSize: "0.75rem",
+                color: "var(--color-red)",
+                borderColor: "transparent"
+              }}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       {data && data.results.length > 0 && (
         <div style={CS.card}>
@@ -137,62 +302,92 @@ export default function Lots() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${T.color.border}` }}>
+                  <th style={{ padding: "12px 16px", width: "40px", textAlign: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={data.results.length > 0 && selectedIds.length === data.results.length}
+                      onChange={e => handleSelectAll(e.target.checked)}
+                      style={{ cursor: "pointer", width: "14px", height: "14px", accentColor: "var(--color-forest)" }}
+                    />
+                  </th>
                   {["Lot ID","Name","Region","Grade","SCA","Volume","Status","EUDR","Export"].map(h => (
                     <th key={h} style={{
                       fontFamily: T.font.mono, fontSize: "0.55rem",
                       letterSpacing: "0.15em", textTransform: "uppercase",
-                      color: T.color.textMuted, padding: "12px 16px",
+                      color: T.color.textMuted, padding: "12px 14px",
                       textAlign: "left", whiteSpace: "nowrap",
                     }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {data.results.map((lot, i) => (
-                  <tr key={lot.id}
-                    onClick={() => navigate(`/lots/${lot.id}`)}
-                    style={{
-                      borderBottom: i < data.results.length - 1 ? `1px solid ${T.color.border}` : "none",
-                      cursor: "pointer", transition: "background 0.12s",
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = T.color.linen)}
-                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <td style={{ padding: "13px 16px", fontFamily: T.font.mono, fontSize: "0.68rem", color: T.color.coffee, whiteSpace: "nowrap", fontWeight: 500 }}>
-                      {lot.lot_id}
-                    </td>
-                    <td style={{ padding: "13px 16px", fontFamily: T.font.sans, fontSize: "0.875rem", color: T.color.ink, whiteSpace: "nowrap" }}>
-                      {lot.name}
-                    </td>
-                    <td style={{ padding: "13px 16px", fontFamily: T.font.mono, fontSize: "0.68rem", color: T.color.slate, whiteSpace: "nowrap", textTransform: "capitalize" }}>
-                      {lot.region}
-                    </td>
-                    <td style={{ padding: "13px 16px", fontFamily: T.font.mono, fontSize: "0.68rem", color: T.color.slate, whiteSpace: "nowrap" }}>
-                      {lot.grade}
-                    </td>
-                    <td style={{ padding: "13px 16px", fontFamily: T.font.mono, fontSize: "0.72rem", color: lot.sca_score && lot.sca_score >= 85 ? T.color.forest : T.color.slate, whiteSpace: "nowrap", fontWeight: lot.sca_score && lot.sca_score >= 85 ? 600 : 400 }}>
-                      {lot.sca_score ? `${lot.sca_score}` : "—"}
-                    </td>
-                    <td style={{ padding: "13px 16px", fontFamily: T.font.mono, fontSize: "0.68rem", color: T.color.slate, whiteSpace: "nowrap" }}>
-                      {lot.volume_kg.toLocaleString()} kg
-                    </td>
-                    <td style={{ padding: "13px 16px", whiteSpace: "nowrap" }}>
-                      <StatusPill status={lot.status} />
-                    </td>
-                    <td style={{ padding: "13px 16px", whiteSpace: "nowrap" }}>
-                      {lot.eudr_dds_ready
-                        ? <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", ...CS.badge.base, ...CS.badge.eudr }}><ShieldCheck size={11} /> Ready</span>
-                        : <span style={{ fontFamily: T.font.mono, fontSize: "0.58rem", color: T.color.textGhost }}>—</span>
-                      }
-                    </td>
-                    <td style={{ padding: "13px 16px", whiteSpace: "nowrap" }}>
-                      {lot.export_ready
-                        ? <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", ...CS.badge.base, ...CS.badge.eudr }}><TrendingUp size={11} /> Ready</span>
-                        : <span style={{ fontFamily: T.font.mono, fontSize: "0.58rem", color: T.color.textGhost }}>—</span>
-                      }
-                    </td>
-                  </tr>
-                ))}
+                {data.results.map((lot, i) => {
+                  const isSelected = selectedIds.includes(lot.id);
+                  return (
+                    <tr key={lot.id}
+                      style={{
+                        borderBottom: i < data.results.length - 1 ? `1px solid ${T.color.border}` : "none",
+                        cursor: "pointer", transition: "background 0.12s",
+                        background: isSelected ? "var(--color-forest-light)" : "transparent"
+                      }}
+                      onMouseEnter={e => {
+                        if (!selectedIds.includes(lot.id)) {
+                          e.currentTarget.style.background = T.color.linen;
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!selectedIds.includes(lot.id)) {
+                          e.currentTarget.style.background = "transparent";
+                        }
+                      }}
+                    >
+                      <td 
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ padding: "13px 16px", width: "40px", textAlign: "center" }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => handleSelectOne(lot.id, e.target.checked)}
+                          style={{ cursor: "pointer", width: "14px", height: "14px", accentColor: "var(--color-forest)" }}
+                        />
+                      </td>
+                      <td onClick={() => navigate(`/lots/${lot.id}`)} style={{ padding: "13px 14px", fontFamily: T.font.mono, fontSize: "0.68rem", color: T.color.coffee, whiteSpace: "nowrap", fontWeight: 500 }}>
+                        {lot.lot_id}
+                      </td>
+                      <td onClick={() => navigate(`/lots/${lot.id}`)} style={{ padding: "13px 14px", fontFamily: T.font.sans, fontSize: "0.875rem", color: T.color.ink, whiteSpace: "nowrap" }}>
+                        {lot.name}
+                      </td>
+                      <td onClick={() => navigate(`/lots/${lot.id}`)} style={{ padding: "13px 14px", fontFamily: T.font.mono, fontSize: "0.68rem", color: T.color.slate, whiteSpace: "nowrap", textTransform: "capitalize" }}>
+                        {lot.region}
+                      </td>
+                      <td onClick={() => navigate(`/lots/${lot.id}`)} style={{ padding: "13px 14px", fontFamily: T.font.mono, fontSize: "0.68rem", color: T.color.slate, whiteSpace: "nowrap" }}>
+                        {lot.grade}
+                      </td>
+                      <td onClick={() => navigate(`/lots/${lot.id}`)} style={{ padding: "13px 14px", fontFamily: T.font.mono, fontSize: "0.72rem", color: lot.sca_score && lot.sca_score >= 85 ? T.color.forest : T.color.slate, whiteSpace: "nowrap", fontWeight: lot.sca_score && lot.sca_score >= 85 ? 600 : 400 }}>
+                        {lot.sca_score ? `${lot.sca_score}` : "—"}
+                      </td>
+                      <td onClick={() => navigate(`/lots/${lot.id}`)} style={{ padding: "13px 14px", fontFamily: T.font.mono, fontSize: "0.68rem", color: T.color.slate, whiteSpace: "nowrap" }}>
+                        {lot.volume_kg.toLocaleString()} kg
+                      </td>
+                      <td onClick={() => navigate(`/lots/${lot.id}`)} style={{ padding: "13px 14px", whiteSpace: "nowrap" }}>
+                        <StatusPill status={lot.status} />
+                      </td>
+                      <td onClick={() => navigate(`/lots/${lot.id}`)} style={{ padding: "13px 14px", whiteSpace: "nowrap" }}>
+                        {lot.eudr_dds_ready
+                          ? <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", ...CS.badge.base, ...CS.badge.eudr }}><ShieldCheck size={11} /> Ready</span>
+                          : <span style={{ fontFamily: T.font.mono, fontSize: "0.58rem", color: T.color.textGhost }}>—</span>
+                        }
+                      </td>
+                      <td onClick={() => navigate(`/lots/${lot.id}`)} style={{ padding: "13px 14px", whiteSpace: "nowrap" }}>
+                        {lot.export_ready
+                          ? <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", ...CS.badge.base, ...CS.badge.eudr }}><TrendingUp size={11} /> Ready</span>
+                          : <span style={{ fontFamily: T.font.mono, fontSize: "0.58rem", color: T.color.textGhost }}>—</span>
+                        }
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

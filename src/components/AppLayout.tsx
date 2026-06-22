@@ -18,7 +18,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const sidebarWidth = collapsed ? 64 : 260;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F7F5F0" }}>
+    <div style={{ minHeight: "100vh", background: "var(--color-linen)" }}>
       <style>{`
         .app-shell { margin-left: ${sidebarWidth}px; transition: margin-left 0.3s ease; }
         .bb-topbar  { left: ${sidebarWidth}px !important; transition: left 0.3s ease; }
@@ -43,7 +43,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       <div className="app-shell" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <TopBar onMenuToggle={() => setMobileOpen(true)} />
-        <main style={{ flex: 1, paddingTop: "56px", background: "#F7F5F0" }}>
+        <main style={{ flex: 1, paddingTop: "56px", background: "var(--color-linen)" }}>
           <div style={{ padding: "clamp(16px, 4vw, 24px)" }}>
             {children}
           </div>

@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   Bell, Menu, Mail, AlertTriangle,
-  CheckSquare, ChevronDown, LogOut, Settings, User, Leaf
+  CheckSquare, ChevronDown, LogOut, Settings, User, Leaf,
+  Sun, Moon
 } from 'lucide-react';
 import RoleBadge from './RoleBadge';
 import {
@@ -18,12 +20,14 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifTab, setNotifTab] = useState<'all' | 'lots' | 'samples'>('all');
   const [profileOpen, setProfile] = useState(false);
   const notifRef   = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const navigate    = useNavigate();
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const notifiedIds      = useRef<Set<number>>(new Set());
   const initialLoadDone  = useRef(false);
@@ -103,7 +107,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
 
   return (
     <header
-      style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid rgba(28,28,26,0.08)', boxShadow: '0 1px 0 rgba(28,28,26,0.06)' }}
+      style={{ backgroundColor: 'var(--color-white)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 1px 0 rgba(28,28,26,0.06)' }}
       className="h-14 flex items-center justify-between px-4 sticky top-0 z-40"
     >
       {/* Left — hamburger + brand */}
@@ -121,6 +125,34 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
 
       {/* Right — notifications + profile */}
       <div className="flex items-center gap-2">
+
+        {/* Theme switcher */}
+        <button
+          onClick={toggleTheme}
+          title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            padding: "8px",
+            borderRadius: "4px",
+            color: "var(--color-slate)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "background 0.15s, color 0.15s",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = theme === "light" ? "var(--color-stone)" : "var(--color-stone)";
+            e.currentTarget.style.color = "var(--color-forest)";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "var(--color-slate)";
+          }}
+        >
+          {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+        </button>
 
         {/* Notification bell */}
         <div className="relative" ref={notifRef}>
@@ -146,23 +178,23 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
 
           {notifOpen && (
             <div
-              style={{ backgroundColor: '#FFFFFF', border: '1px solid rgba(28,28,26,0.1)', boxShadow: '0 4px 16px rgba(28,28,26,0.12)' }}
+              style={{ backgroundColor: 'var(--color-white)', border: '1px solid var(--color-borderstrong, var(--color-border))', boxShadow: '0 4px 16px rgba(28,28,26,0.12)' }}
               className="absolute right-0 mt-2 w-80 rounded-lg overflow-hidden flex flex-col z-50"
             >
               {/* Header */}
               <div
-                style={{ backgroundColor: '#F7F5F0', borderBottom: '1px solid rgba(28,28,26,0.08)' }}
+                style={{ backgroundColor: 'var(--color-stone)', borderBottom: '1px solid var(--color-border)' }}
                 className="px-3 py-2 flex justify-between items-center"
               >
-                <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(28,28,26,0.5)' }}>
-                  Notifications
+                <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-slate)' }}>
+                  Notification Center
                 </span>
                 {unreadCount > 0 && (
                   <button
                     onClick={() => markAllReadMutation.mutate()}
                     disabled={markAllReadMutation.isPending}
-                    className="flex items-center gap-1 transition-colors"
-                    style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', color: '#1B4D35', background: 'none', border: 'none', cursor: 'pointer' }}
+                    className="flex items-center gap-1 transition-colors hover:opacity-80"
+                    style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', color: 'var(--color-forest)', background: 'none', border: 'none', cursor: 'pointer' }}
                   >
                     <CheckSquare className="w-3 h-3" />
                     Mark all read
@@ -170,35 +202,73 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
                 )}
               </div>
 
+              {/* Notification Tabs */}
+              <div className="flex border-b border-[rgba(28,28,26,0.08)] bg-[var(--color-stone)]" style={{ borderBottomColor: 'var(--color-border)' }}>
+                {(['all', 'lots', 'samples'] as const).map(tab => {
+                  const isActive = notifTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => setNotifTab(tab)}
+                      className="text-[9px] uppercase tracking-wider font-semibold py-1.5 px-3 flex-1 text-center transition-colors border-b-2"
+                      style={{
+                        fontFamily: 'DM Mono, monospace',
+                        borderBottomColor: isActive ? 'var(--color-forest)' : 'transparent',
+                        color: isActive ? 'var(--color-forest)' : 'var(--color-slate)',
+                        background: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {tab}
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* List */}
               <div className="overflow-y-auto max-h-80">
-                {notifications.length === 0 ? (
-                  <div className="p-6 text-center" style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.7rem', color: 'rgba(28,28,26,0.3)' }}>
-                    No notifications yet
-                  </div>
-                ) : (
-                  notifications.map(item => (
+                {(() => {
+                  const displayedNotifs = notifications.filter(n => {
+                    if (notifTab === 'all') return true;
+                    if (notifTab === 'lots') {
+                      return n.notification_type === 'lot_status' || n.notification_type === 'eudr_alert';
+                    }
+                    if (notifTab === 'samples') {
+                      return n.notification_type === 'sample_request';
+                    }
+                    return true;
+                  });
+
+                  if (displayedNotifs.length === 0) {
+                    return (
+                      <div className="p-6 text-center" style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.7rem', color: 'var(--color-slate)' }}>
+                        No alerts in this category
+                      </div>
+                    );
+                  }
+
+                  return displayedNotifs.map(item => (
                     <div
                       key={item.id}
                       onClick={() => handleNotificationClick(item)}
                       style={{
-                        borderBottom: '1px solid rgba(28,28,26,0.06)',
-                        background: !item.is_read ? '#F0EDE6' : 'transparent',
+                        borderBottom: '1px solid var(--color-border)',
+                        background: !item.is_read ? 'var(--color-stone)' : 'transparent',
                         cursor: 'pointer',
                       }}
-                      className="px-3 py-2.5 flex gap-2.5 items-start transition-colors hover:bg-[#F7F5F0]"
+                      className="px-3 py-2.5 flex gap-2.5 items-start transition-colors hover:bg-[var(--color-linen)]"
                     >
-                      <div style={{ background: '#F0EDE6', borderRadius: '4px', border: '1px solid rgba(28,28,26,0.06)' }} className="p-1 mt-0.5 shrink-0">
+                      <div style={{ background: 'var(--color-linen)', borderRadius: '4px', border: '1px solid var(--color-border)' }} className="p-1 mt-0.5 shrink-0">
                         {getIcon(item.notification_type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs truncate" style={{ color: '#1C1C1A', fontWeight: !item.is_read ? 600 : 400 }}>
+                        <p className="text-xs truncate font-medium" style={{ color: 'var(--color-ink)', fontWeight: !item.is_read ? 600 : 400 }}>
                           {item.title}
                         </p>
-                        <p className="text-[11px] line-clamp-2 mt-0.5 leading-relaxed" style={{ color: 'rgba(28,28,26,0.55)' }}>
+                        <p className="text-[11px] line-clamp-2 mt-0.5 leading-relaxed" style={{ color: 'var(--color-slate)' }}>
                           {item.message}
                         </p>
-                        <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.55rem', color: 'rgba(28,28,26,0.3)', marginTop: '4px', textTransform: 'uppercase' }}>
+                        <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.55rem', color: 'var(--color-slate)', marginTop: '4px', textTransform: 'uppercase' }}>
                           {new Date(item.created_at).toLocaleString([], {
                             month: 'short', day: 'numeric',
                             hour: '2-digit', minute: '2-digit',
@@ -206,11 +276,11 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuToggle }) => {
                         </p>
                       </div>
                       {!item.is_read && (
-                        <div style={{ backgroundColor: '#1B4D35' }} className="w-1.5 h-1.5 rounded-full mt-2 shrink-0" />
+                        <div style={{ backgroundColor: 'var(--color-forest)' }} className="w-1.5 h-1.5 rounded-full mt-2 shrink-0" />
                       )}
                     </div>
-                  ))
-                )}
+                  ));
+                })()}
               </div>
             </div>
           )}
